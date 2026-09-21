@@ -6,7 +6,7 @@ Notas del estado del proyecto para retomarlo sin repasar todo el historial.
 
 App Next.js (16.3.4, App Router) con shadcn/ui (estilo `base-nova`) y Tailwind 4.
 Una sola página que muestra una tabla de vehículos, con buscador, paginación y orden por
-potencia, tres tarjetas de estadísticas y un fondo animado con un shader WebGL.
+potencia, cuatro tarjetas laterales (tres estadísticas y un gráfico de barras de potencia por país) y un fondo animado con un shader WebGL.
 
 Repositorio: https://github.com/jacobmelendezjm-tech/Ejercicio-2 (público, rama `main`).
 Despliegue: https://ejercicio2-mu-vert.vercel.app/ (cuenta `jacob14-416e`, plan Hobby).
@@ -21,6 +21,8 @@ Despliegue: https://ejercicio2-mu-vert.vercel.app/ (cuenta `jacob14-416e`, plan 
 | `components/ui/card.tsx` | Card estándar de shadcn base-nova. |
 | `components/ui/table.tsx` | Tabla de shadcn (`npx shadcn@latest add table`). |
 | `components/ui/pagination.tsx` | Paginación de shadcn (`npx shadcn@latest add pagination`). |
+| `components/animated-blobatar.tsx` | Blobatar animado (mueve, parpadea y sus ojos siguen el puntero) para la celda de marca. Cliente. |
+| `components/ui/avatar.tsx`, `components/ui/blobatar.tsx` | Instalados con `npx shadcn@latest add @blobatar/avatar` (registro `@blobatar` en `components.json`). |
 | `components/ui/input.tsx` | Input de shadcn (`npx shadcn@latest add input`), usado en el buscador. |
 | `public/json/vehiculos_200.json` | 200 vehículos: `id`, `marca`, `modelo`, `potencia_cv`, `pais_fabricacion`. |
 
@@ -34,8 +36,12 @@ Despliegue: https://ejercicio2-mu-vert.vercel.app/ (cuenta `jacob14-416e`, plan 
 - **Buscador:** formulario GET arriba a la izquierda de la tabla. Estado en la URL: `?q=texto`.
   Busca en ID, marca, modelo, país y potencia, sin distinguir mayúsculas ni acentos. Se
   aplica antes de ordenar y paginar, y las flechas y la paginación conservan `q`.
+- **Blobatar:** cada marca lleva a la izquierda un blobatar generado a partir del nombre (misma marca, misma cara),
+  con `animate="always"` y `useGaze({ travel: 4, lookAt: "pointer" })`. Requiere `blobatar/motion.css` y
+  `blobatar/gaze.css`; se desactiva con "reducir movimiento".
 - **Estadísticas:** se calculan sobre los resultados filtrados: potencia media (con el coche
-  más cercano a la media), coche más cutre (menor potencia) y coche más potente.
+  más cercano a la media), coche más cutre (menor potencia) y coche más potente. Debajo, una
+  cuarta tarjeta "Potencia por país" con barras de los 6 países con más CV acumulados y su líder.
 - **Datos:** el JSON se importa directamente (`@/public/json/vehiculos_200.json`), no con `fs`,
   para que funcione en Vercel.
 - **Paginación:** 25 filas por página (`PAGE_SIZE`), 8 páginas. Estado en la URL: `?page=N`.
@@ -96,3 +102,5 @@ npm run lint
 - Buscador por texto (`?q=`).
 - Tres tarjetas de estadísticas a la derecha de la tabla, con el coche más cercano a la media.
 - Comprobación del despliegue: la URL de Vercel estaba desactualizada respecto a `main`.
+- Tarjeta "Potencia por país" (barras) bajo las estadísticas.
+- Blobatar animado junto a cada marca, con registro `@blobatar` de shadcn.

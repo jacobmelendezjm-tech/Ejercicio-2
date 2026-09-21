@@ -1,6 +1,7 @@
 import { ChevronDownIcon, ChevronUpIcon, SearchIcon } from "lucide-react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
+import { AnimatedBlobatar } from "@/components/animated-blobatar"
 import { Input } from "@/components/ui/input"
 import vehiculosData from "@/public/json/vehiculos_200.json"
 import { ShaderBackground } from "@/components/shader-background"
@@ -134,6 +135,17 @@ export default async function Page({
       detail: masPotente ? `${masPotente.potencia_cv} CV · ${masPotente.pais_fabricacion}` : "Sin resultados",
     },
   ]
+  const potenciaPorPais = new Map<string, number>()
+  for (const v of vehiculos) {
+    potenciaPorPais.set(
+      v.pais_fabricacion,
+      (potenciaPorPais.get(v.pais_fabricacion) ?? 0) + v.potencia_cv
+    )
+  }
+  const topPaises = [...potenciaPorPais.entries()]
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 6)
+  const lider = topPaises[0] ?? null
   const totalPages = Math.max(1, Math.ceil(vehiculos.length / PAGE_SIZE))
   const requested = Number(params.page)
   const currentPage = Number.isInteger(requested)
@@ -216,7 +228,12 @@ export default async function Page({
                   {pageItems.map((vehiculo) => (
                     <TableRow key={vehiculo.id}>
                       <TableCell className="font-medium">{vehiculo.id}</TableCell>
-                      <TableCell>{vehiculo.marca}</TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                          <AnimatedBlobatar name={vehiculo.marca} />
+                          {vehiculo.marca}
+                        </div>
+                      </TableCell>
                       <TableCell>{vehiculo.modelo}</TableCell>
                       <TableCell>{vehiculo.pais_fabricacion}</TableCell>
                       <TableCell className="text-right">
@@ -297,6 +314,60 @@ export default async function Page({
                 </CardContent>
               </Card>
             ))}
+            <Card>
+              <CardHeader>
+                <CardTitle>Potencia por país</CardTitle>
+                <CardDescription>
+                  Los {topPaises.length || 6} países con más CV acumulados
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {lider ? (
+                  <ul className="relative flex h-40 items-end gap-2 border-b bg-[linear-gradient(to_bottom,transparent_calc(100%-1px),var(--border)_calc(100%-1px))] bg-[length:100%_25%] pb-px">
+                    {topPaises.map(([pais, total]) => (
+                      <li
+                        key={pais}
+                        tabIndex={0}
+                        aria-label={`${pais}: ${total} CV acumulados`}
+                        className="group/bar relative flex h-full flex-1 flex-col justify-end outline-none"
+                      >
+                        <div
+                          className="w-full rounded-t-md bg-foreground/85 transition-opacity group-hover/bar:opacity-100 group-focus-visible/bar:opacity-100 group-hover/bar:bg-foreground"
+                          style={{ height: `${(total / lider[1]) * 100}%` }}
+                        />
+                        <span
+                          role="tooltip"
+                          className="pointer-events-none absolute bottom-full left-1/2 z-10 mb-1 hidden -translate-x-1/2 rounded-md bg-popover px-2 py-1 text-xs whitespace-nowrap text-popover-foreground shadow-md ring-1 ring-foreground/10 group-hover/bar:block group-focus-visible/bar:block"
+                        >
+                          {pais}: {total} CV
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="py-6 text-center text-sm text-muted-foreground">
+                    Sin resultados
+                  </p>
+                )}
+                {lider && (
+                  <ul className="mt-2 flex gap-2 text-sm text-muted-foreground" aria-hidden>
+                    {topPaises.map(([pais]) => (
+                      <li key={pais} className="flex-1 text-center">
+                        {pais.slice(0, 3)}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </CardContent>
+              <CardFooter className="flex-col items-start gap-0.5 bg-transparent">
+                <p className="text-sm font-medium">
+                  Líder: {lider ? lider[0] : "—"}
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  {lider ? `${lider[1]} CV acumulados` : "Sin resultados"}
+                </p>
+              </CardFooter>
+            </Card>
           </div>
         </div>
       </div>
