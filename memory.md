@@ -77,10 +77,24 @@ Despliegue: https://ejercicio2-mu-vert.vercel.app/ (cuenta `jacob14-416e`, plan 
 - El proyecto de Vercel se llama `ejercicio2` y se creó con el flujo de clonar, que genera
   una **copia privada** del repo en GitHub. Si sigue esa copia, los pushes a `Ejercicio-2`
   no lo despliegan.
-- Comprobado el 2026-09-21: la URL de Vercel mostraba la versión anterior (sin buscador ni
-  línea "Más cercano"). Para arreglarlo, en Vercel: Settings → Git → Disconnect y volver a
-  conectar `jacobmelendezjm-tech/Ejercicio-2`; o subir los cambios también a la copia.
-- Pendiente: confirmar qué repo tiene conectado Vercel y que el despliegue quede al día.
+- Comprobado el 2026-09-21: la URL de producción `ejercicio2-mu-vert.vercel.app` seguía
+  mostrando una versión antigua (sin buscador, gráfico ni blobatars) aunque `main` en GitHub
+  ya tenía todo. Existe otro despliegue, `ejercicio2-fn71wh64x-jacob14-416e.vercel.app`, pero
+  está protegido con inicio de sesión de Vercel y no se puede leer desde fuera.
+- Arreglos posibles: en Vercel, Deployments → despliegue más reciente → Promote to Production;
+  o Settings → Git → Disconnect y conectar `jacobmelendezjm-tech/Ejercicio-2`.
+- No hay CLI de Vercel instalada ni sesión iniciada en esta máquina, así que los despliegues
+  se hacen desde la web de Vercel. Se instaló el plugin `vercel/vercel-plugin` en VS Code
+  (`npx plugins add vercel/vercel-plugin`, alcance de usuario); hay que reiniciar VS Code
+  para que cargue y luego iniciar sesión en Vercel.
+- Pendiente: confirmar qué repo tiene conectado Vercel y dejar producción al día.
+
+## GitHub
+
+- Remoto: `origin` → https://github.com/jacobmelendezjm-tech/Ejercicio-2.git, rama `main`.
+- Git usa `user.name` = `jacobmelendezjm-tech` y `user.email` = `jacobmelendez.jm@gmail.com`
+  solo en este repositorio. `gh` (GitHub CLI) está instalado pero sin sesión iniciada; los
+  pushes funcionan por HTTPS con las credenciales de Windows.
 
 ## Comandos
 
@@ -104,3 +118,4 @@ npm run lint
 - Comprobación del despliegue: la URL de Vercel estaba desactualizada respecto a `main`.
 - Tarjeta "Potencia por país" (barras) bajo las estadísticas.
 - Blobatar animado junto a cada marca, con registro `@blobatar` de shadcn.
+- Instalación del plugin de Vercel en VS Code y revisión del estado de los despliegues.
