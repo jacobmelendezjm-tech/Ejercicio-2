@@ -9,6 +9,7 @@ Una sola página que muestra una tabla de vehículos, con buscador, paginación 
 potencia, tres tarjetas de estadísticas y un fondo animado con un shader WebGL.
 
 Repositorio: https://github.com/jacobmelendezjm-tech/Ejercicio-2 (público, rama `main`).
+Despliegue: https://ejercicio2-mu-vert.vercel.app/ (cuenta `jacob14-416e`, plan Hobby).
 
 ## Estructura relevante
 
@@ -65,6 +66,16 @@ Repositorio: https://github.com/jacobmelendezjm-tech/Ejercicio-2 (público, rama
 - `card.tsx` se sustituyó por la versión estándar de shadcn base-nova porque la
   anterior era una versión simplificada que no coincidía con el diseño esperado.
 
+## Despliegue (Vercel)
+
+- El proyecto de Vercel se llama `ejercicio2` y se creó con el flujo de clonar, que genera
+  una **copia privada** del repo en GitHub. Si sigue esa copia, los pushes a `Ejercicio-2`
+  no lo despliegan.
+- Comprobado el 2026-09-21: la URL de Vercel mostraba la versión anterior (sin buscador ni
+  línea "Más cercano"). Para arreglarlo, en Vercel: Settings → Git → Disconnect y volver a
+  conectar `jacobmelendezjm-tech/Ejercicio-2`; o subir los cambios también a la copia.
+- Pendiente: confirmar qué repo tiene conectado Vercel y que el despliegue quede al día.
+
 ## Comandos
 
 ```bash
@@ -84,3 +95,4 @@ npm run lint
 - Despliegue en Vercel; el JSON pasó de `fs` a `import`.
 - Buscador por texto (`?q=`).
 - Tres tarjetas de estadísticas a la derecha de la tabla, con el coche más cercano a la media.
+- Comprobación del despliegue: la URL de Vercel estaba desactualizada respecto a `main`.
