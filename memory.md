@@ -5,8 +5,8 @@ Notas del estado del proyecto para retomarlo sin repasar todo el historial.
 ## Resumen
 
 App Next.js (16.3.4, App Router) con shadcn/ui (estilo `base-nova`) y Tailwind 4.
-Una sola página que muestra una tabla de vehículos, con paginación y orden por
-potencia, sobre un fondo animado con un shader WebGL.
+Una sola página que muestra una tabla de vehículos, con buscador, paginación y orden por
+potencia, tres tarjetas de estadísticas y un fondo animado con un shader WebGL.
 
 Repositorio: https://github.com/jacobmelendezjm-tech/Ejercicio-2 (público, rama `main`).
 
@@ -20,14 +20,23 @@ Repositorio: https://github.com/jacobmelendezjm-tech/Ejercicio-2 (público, rama
 | `components/ui/card.tsx` | Card estándar de shadcn base-nova. |
 | `components/ui/table.tsx` | Tabla de shadcn (`npx shadcn@latest add table`). |
 | `components/ui/pagination.tsx` | Paginación de shadcn (`npx shadcn@latest add pagination`). |
+| `components/ui/input.tsx` | Input de shadcn (`npx shadcn@latest add input`), usado en el buscador. |
 | `public/json/vehiculos_200.json` | 200 vehículos: `id`, `marca`, `modelo`, `potencia_cv`, `pais_fabricacion`. |
 
 ## Comportamiento de la página
 
 - **Layout:** div exterior `relative w-full overflow-hidden bg-neutral-950`, contenedor
   centrado `max-w-[1200px]` y grid de 12 columnas (`grid-cols-12`, `min-h-svh`,
-  `items-start`). La tarjeta ocupa las 12 columnas.
-- **Datos:** el JSON se lee en el servidor con `fs` desde `public/json`.
+  `items-start`, `gap-4`). La tarjeta de la tabla ocupa 9 columnas (`lg:col-span-9`) y
+  las tres tarjetas de estadísticas 3 (`lg:col-span-3`), una debajo de otra. En pantallas
+  pequeñas todo se apila a ancho completo.
+- **Buscador:** formulario GET arriba a la izquierda de la tabla. Estado en la URL: `?q=texto`.
+  Busca en ID, marca, modelo, país y potencia, sin distinguir mayúsculas ni acentos. Se
+  aplica antes de ordenar y paginar, y las flechas y la paginación conservan `q`.
+- **Estadísticas:** se calculan sobre los resultados filtrados: potencia media (con el coche
+  más cercano a la media), coche más cutre (menor potencia) y coche más potente.
+- **Datos:** el JSON se importa directamente (`@/public/json/vehiculos_200.json`), no con `fs`,
+  para que funcione en Vercel.
 - **Paginación:** 25 filas por página (`PAGE_SIZE`), 8 páginas. Estado en la URL: `?page=N`.
   Un valor inválido o fuera de rango se ajusta al mínimo o máximo.
 - **Orden:** flechas ▲/▼ dentro del encabezado de "Potencia (CV)". Estado en la URL:
@@ -72,3 +81,6 @@ npm run lint
 - Fondo de shader WebGL "Plasma".
 - Orden por potencia con flechas en el encabezado de la columna.
 - Primer commit y subida a GitHub.
+- Despliegue en Vercel; el JSON pasó de `fs` a `import`.
+- Buscador por texto (`?q=`).
+- Tres tarjetas de estadísticas a la derecha de la tabla, con el coche más cercano a la media.

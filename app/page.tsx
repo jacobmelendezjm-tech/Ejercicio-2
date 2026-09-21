@@ -1,6 +1,7 @@
-import { ChevronDownIcon, ChevronUpIcon } from "lucide-react"
+import { ChevronDownIcon, ChevronUpIcon, SearchIcon } from "lucide-react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
 import vehiculosData from "@/public/json/vehiculos_200.json"
 import { ShaderBackground } from "@/components/shader-background"
 import {
@@ -39,10 +40,19 @@ type Vehiculo = {
   pais_fabricacion: string
 }
 
-function buildHref(page: number, sort: "asc" | "desc" | null) {
+function buildHref(page: number, sort: "asc" | "desc" | null, q: string) {
   const query = new URLSearchParams({ page: String(page) })
   if (sort) query.set("sort", sort)
+  if (q) query.set("q", q)
   return `?${query}`
+}
+
+// Minúsculas y sin acentos, para que "turquia" encuentre "Turquía".
+function normalize(text: string) {
+  return text
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
 }
 
 const SORT_OPTIONS = [
@@ -71,7 +81,15 @@ export default async function Page({
 }) {
   const params = await searchParams
   const sort = params.sort === "asc" || params.sort === "desc" ? params.sort : null
-  const vehiculos: Vehiculo[] = [...vehiculosData]
+  const q = (typeof params.q === "string" ? params.q : "").trim().slice(0, 100)
+  const needle = normalize(q)
+  const vehiculos: Vehiculo[] = vehiculosData.filter(
+    (v) =>
+      !needle ||
+      normalize(
+        `${v.id} ${v.marca} ${v.modelo} ${v.pais_fabricacion} ${v.potencia_cv}`
+      ).includes(needle)
+  )
   if (sort) {
     vehiculos.sort((a, b) =>
       sort === "desc"
@@ -79,6 +97,43 @@ export default async function Page({
         : a.potencia_cv - b.potencia_cv
     )
   }
+  const media = vehiculos.length
+    ? vehiculos.reduce((sum, v) => sum + v.potencia_cv, 0) / vehiculos.length
+    : null
+  const masCercano =
+    media !== null
+      ? vehiculos.reduce((best, v) =>
+          Math.abs(v.potencia_cv - media) < Math.abs(best.potencia_cv - media)
+            ? v
+            : best
+        )
+      : null
+  const masCutre = vehiculos.length
+    ? vehiculos.reduce((min, v) => (v.potencia_cv < min.potencia_cv ? v : min))
+    : null
+  const masPotente = vehiculos.length
+    ? vehiculos.reduce((max, v) => (v.potencia_cv > max.potencia_cv ? v : max))
+    : null
+  const stats = [
+    {
+      title: "Potencia media",
+      value: media === null ? "—" : `${media.toFixed(1)} CV`,
+      detail: q ? `Media de los resultados de "${q}"` : "Media de todos los vehículos",
+      extra: masCercano
+        ? `Más cercano: ${masCercano.marca} ${masCercano.modelo} (${masCercano.potencia_cv} CV)`
+        : null,
+    },
+    {
+      title: "Coche más cutre",
+      value: masCutre ? `${masCutre.marca} ${masCutre.modelo}` : "—",
+      detail: masCutre ? `${masCutre.potencia_cv} CV · ${masCutre.pais_fabricacion}` : "Sin resultados",
+    },
+    {
+      title: "Coche más potente",
+      value: masPotente ? `${masPotente.marca} ${masPotente.modelo}` : "—",
+      detail: masPotente ? `${masPotente.potencia_cv} CV · ${masPotente.pais_fabricacion}` : "Sin resultados",
+    },
+  ]
   const totalPages = Math.max(1, Math.ceil(vehiculos.length / PAGE_SIZE))
   const requested = Number(params.page)
   const currentPage = Number.isInteger(requested)
@@ -93,16 +148,33 @@ export default async function Page({
     <div className="relative w-full overflow-hidden bg-neutral-950">
       <ShaderBackground />
       <div className="relative mx-auto w-full max-w-[1200px]">
-        <div className="grid min-h-svh grid-cols-12 items-start">
-          <Card className="col-span-12">
+        <div className="grid min-h-svh grid-cols-12 items-start gap-4">
+          <Card className="col-span-12 lg:col-span-9">
             <CardHeader>
               <CardTitle>Vehículos</CardTitle>
               <CardDescription>
-                {vehiculos.length} vehículos del archivo vehiculos_200.json. Página{" "}
-                {currentPage} de {totalPages}.
+                {vehiculos.length} vehículos
+                {q ? ` para "${q}"` : ""}. Página {currentPage} de {totalPages}.
               </CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="flex flex-col gap-4">
+              <form method="get" className="flex w-full max-w-sm gap-2">
+                {sort && <input type="hidden" name="sort" value={sort} />}
+                <div className="relative flex-1">
+                  <SearchIcon className="pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground" />
+                  <Input
+                    type="search"
+                    name="q"
+                    defaultValue={q}
+                    placeholder="Buscar por marca, modelo, país…"
+                    aria-label="Buscar vehículos"
+                    className="pl-8"
+                  />
+                </div>
+                <Button type="submit" size="default">
+                  Buscar
+                </Button>
+              </form>
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -125,7 +197,7 @@ export default async function Page({
                                 nativeButton={false}
                                 render={
                                   <Link
-                                    href={buildHref(1, isActive ? null : value)}
+                                    href={buildHref(1, isActive ? null : value, q)}
                                     aria-label={label}
                                     aria-pressed={isActive}
                                   />
@@ -152,6 +224,16 @@ export default async function Page({
                       </TableCell>
                     </TableRow>
                   ))}
+                  {pageItems.length === 0 && (
+                    <TableRow>
+                      <TableCell
+                        colSpan={5}
+                        className="py-6 text-center text-muted-foreground"
+                      >
+                        No hay vehículos que coincidan con la búsqueda.
+                      </TableCell>
+                    </TableRow>
+                  )}
                 </TableBody>
               </Table>
             </CardContent>
@@ -161,7 +243,7 @@ export default async function Page({
                   <PaginationItem>
                     <PaginationPrevious
                       text="Anterior"
-                      href={buildHref(currentPage - 1, sort)}
+                      href={buildHref(currentPage - 1, sort, q)}
                       aria-disabled={currentPage === 1}
                       className={
                         currentPage === 1
@@ -174,7 +256,7 @@ export default async function Page({
                     <PaginationItem key={page}>
                       {typeof page === "number" ? (
                         <PaginationLink
-                          href={buildHref(page, sort)}
+                          href={buildHref(page, sort, q)}
                           isActive={page === currentPage}
                         >
                           {page}
@@ -187,7 +269,7 @@ export default async function Page({
                   <PaginationItem>
                     <PaginationNext
                       text="Siguiente"
-                      href={buildHref(currentPage + 1, sort)}
+                      href={buildHref(currentPage + 1, sort, q)}
                       aria-disabled={currentPage === totalPages}
                       className={
                         currentPage === totalPages
@@ -200,6 +282,22 @@ export default async function Page({
               </Pagination>
             </CardFooter>
           </Card>
+          <div className="col-span-12 flex flex-col gap-4 lg:col-span-3">
+            {stats.map((stat) => (
+              <Card key={stat.title}>
+                <CardHeader>
+                  <CardDescription>{stat.title}</CardDescription>
+                  <CardTitle className="text-2xl">{stat.value}</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-sm text-muted-foreground">{stat.detail}</p>
+                  {"extra" in stat && stat.extra && (
+                    <p className="mt-2 text-sm font-medium">{stat.extra}</p>
+                  )}
+                </CardContent>
+              </Card>
+            ))}
+          </div>
         </div>
       </div>
     </div>
