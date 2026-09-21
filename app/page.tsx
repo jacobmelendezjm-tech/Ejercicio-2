@@ -1,8 +1,7 @@
-import { readFile } from "node:fs/promises"
-import path from "node:path"
 import { ChevronDownIcon, ChevronUpIcon } from "lucide-react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
+import vehiculosData from "@/public/json/vehiculos_200.json"
 import { ShaderBackground } from "@/components/shader-background"
 import {
   Card,
@@ -40,11 +39,6 @@ type Vehiculo = {
   pais_fabricacion: string
 }
 
-async function getVehiculos(): Promise<Vehiculo[]> {
-  const file = path.join(process.cwd(), "public", "json", "vehiculos_200.json")
-  return JSON.parse(await readFile(file, "utf8"))
-}
-
 function buildHref(page: number, sort: "asc" | "desc" | null) {
   const query = new URLSearchParams({ page: String(page) })
   if (sort) query.set("sort", sort)
@@ -77,7 +71,7 @@ export default async function Page({
 }) {
   const params = await searchParams
   const sort = params.sort === "asc" || params.sort === "desc" ? params.sort : null
-  const vehiculos = await getVehiculos()
+  const vehiculos: Vehiculo[] = [...vehiculosData]
   if (sort) {
     vehiculos.sort((a, b) =>
       sort === "desc"
